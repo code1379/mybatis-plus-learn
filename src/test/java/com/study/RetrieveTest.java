@@ -113,4 +113,38 @@ public class RetrieveTest {
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
+
+    /**
+     * 需求5
+     * 名字为王姓 并且 (年龄小于（我这里加个等于） 40 或 邮箱不为空)
+     * name like '王%' and (age <= 40 or email is not null)
+     * SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name LIKE ? AND (age <= ? OR email IS NOT NULL))
+     * 王%(String), 40(Integer)
+     */
+    @Test
+    public void selectListByWrapper5() {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.likeRight("name","王").and(wq -> wq.le("age", 40).or().isNotNull("email"));
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+
+    /**
+     * 需求6
+     * 名字为王姓 或者（年龄小于40 并且年龄大于20 并且 邮箱不为空）
+     * name like '王%' and (age < 40 and age > 20 and email is not null)
+     */
+    @Test
+    public void selectListByWrapper6() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.likeRight("name", "王")
+                // .or(wq -> wq.lt("age", 40)
+                //         .and(wq1 -> wq1.gt("age", 20))
+                //         .and(wq2 -> wq2.isNotNull("email")));
+                .or(wq -> wq.lt("age", 40).gt("age", 20).isNotNull("email"));
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
 }
