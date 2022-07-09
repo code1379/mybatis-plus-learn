@@ -1,6 +1,7 @@
 package com.study;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.study.entity.User;
 import com.study.mapper.UserMapper;
 import org.junit.jupiter.api.Test;
@@ -209,16 +210,49 @@ public class RetrieveTest {
     public void selectListByWrapper10() {
         QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
         queryWrapper.select("id", "name")
-                .like("name","打工仔").lt("age", 40);
+                .like("name", "打工仔").lt("age", 40);
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
+
     @Test
     public void selectListByWrapper11() {
         QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
         // 排除字段的写法
         queryWrapper.select(User.class, info -> !info.getColumn().equals("create_time") && !info.getColumn().equals("manager_id"))
-                .like("name","打工仔").lt("age", 40);
+                .like("name", "打工仔").lt("age", 40);
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+
+    /**
+     * 什么条件下会使用到 condition 传入 false 呢 ？
+     * 前端查询页面，两个查询条件 1. 姓名 2. 邮箱。
+     * 当用户点击查询按钮时，这两个条件是可输入可不输入的，都可以
+     * <p>
+     * 原来的处理方式，是要判断这两个字段是否为非空。
+     */
+    @Test
+    public void testCondition() {
+        String name = "王";
+        String email = "";
+        condition(name, email);
+    }
+
+    private void condition(String name, String email) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        // 因为我这里找不到 isNotEmpty 方法，先用 isNotBlank 替代
+        // if (StringUtils.isNotBlank(name)) {
+        //     queryWrapper.like("name", name);
+        // }
+        // if (StringUtils.isNotBlank(email)) {
+        //     queryWrapper.like("email", email);
+        // }
+        // 上面写法的简写
+        queryWrapper.like(StringUtils.isNotBlank(name), "name", name)
+                .like(StringUtils.isNotBlank(email), "email", email);
+
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
