@@ -197,4 +197,29 @@ public class RetrieveTest {
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
+
+
+    /**
+     * 需求10
+     * 名字中包含 打工仔 并且 年龄小于 40（需求1 加强版）
+     * 第一种情况 select id,name from user where name like "%打工仔%" and age < 40
+     * 第二种情况 select id,name,age,email from user where name like "%打工仔%" and age < 40
+     */
+    @Test
+    public void selectListByWrapper10() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.select("id", "name")
+                .like("name","打工仔").lt("age", 40);
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+    @Test
+    public void selectListByWrapper11() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        // 排除字段的写法
+        queryWrapper.select(User.class, info -> !info.getColumn().equals("create_time") && !info.getColumn().equals("manager_id"))
+                .like("name","打工仔").lt("age", 40);
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
 }
