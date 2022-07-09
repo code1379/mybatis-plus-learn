@@ -99,10 +99,10 @@ public class RetrieveTest {
      * <p>
      * dateformat(create_time, '%Y-%m-%d') and manager_id in (select id from user where name like '王%')
      * 条件构造器： apply https://baomidou.com/pages/10c804/#apply
-     *
-     *  SELECT id,name,age,email,manager_id,create_time FROM user
-     *  WHERE (date_format(create_time,'%Y-%m-%d') = ? AND
-     *  manager_id IN (select id from user where name like '王%'))
+     * <p>
+     * SELECT id,name,age,email,manager_id,create_time FROM user
+     * WHERE (date_format(create_time,'%Y-%m-%d') = ? AND
+     * manager_id IN (select id from user where name like '王%'))
      */
     @Test
     public void selectListByWrapper4() {
@@ -125,7 +125,7 @@ public class RetrieveTest {
     public void selectListByWrapper5() {
 
         QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
-        queryWrapper.likeRight("name","王").and(wq -> wq.le("age", 40).or().isNotNull("email"));
+        queryWrapper.likeRight("name", "王").and(wq -> wq.le("age", 40).or().isNotNull("email"));
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
@@ -144,6 +144,56 @@ public class RetrieveTest {
                 //         .and(wq1 -> wq1.gt("age", 20))
                 //         .and(wq2 -> wq2.isNotNull("email")));
                 .or(wq -> wq.lt("age", 40).gt("age", 20).isNotNull("email"));
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+    /**
+     * 需求7
+     * (年龄小于40 或 邮箱不为空) 并且名字为 王姓
+     * (age < 40 or email is not null) and name like "王%"
+     * 没有 括号的话， or 的优先级小于 and 的优先级，所以必须要加括号
+     * <p>
+     * nested https://baomidou.com/pages/10c804/#nested
+     */
+    @Test
+    public void selectListByWrapper7() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        // queryWrapper.lt("age", 40).or().isNotNull("email")
+        //         .and(wq -> wq.likeRight("name", "王"));
+        // 错误 上面的查询相当于 没加 括号的查询
+        queryWrapper.nested(wq -> wq.lt("age", 40).or().isNotNull("email"))
+                .likeRight("name", "王");
+
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+
+    /**
+     * 需求8
+     * 年龄为 30、31、34、35
+     * age in (30, 31, 34, 35)
+     */
+    @Test
+    public void selectListByWrapper8() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.in("age", Arrays.asList(30, 31, 34, 35, 40));
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+    /**
+     * 需求9
+     * 只返回满足条件的其中一条语句即可
+     * limit 1
+     * <p>
+     * last https://baomidou.com/pages/10c804/#last
+     */
+    @Test
+    public void selectListByWrapper9() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.in("age", Arrays.asList(18)).last("limit 1");
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
