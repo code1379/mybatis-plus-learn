@@ -256,4 +256,22 @@ public class RetrieveTest {
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
+
+
+    /**
+     * 实体作为条件构造器构造方法的参数
+     * SELECT id,name,age,email,manager_id,create_time FROM user WHERE name=? AND age=?
+     * */
+    @Test
+    public void selectByWrapperEntity(){
+        User whereUser = new User();
+        whereUser.setName("王总");
+        whereUser.setAge(40);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>(whereUser);
+        // 下面和上面是互不干扰的。一定要慎用
+        // queryWrapper.like("name", "雨").lt("age", 40);
+
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
 }
