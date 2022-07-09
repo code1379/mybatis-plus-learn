@@ -51,11 +51,11 @@ public class RetrieveTest {
     }
 
     /*
-    * 下面都是条件查询构造器 Wrapper
-    * 双击 Shift 查询 AbstractWrapper。QueryWrapper 是 AbstractWrapper 的子类
-    * */
+     * 下面都是条件查询构造器 Wrapper
+     * 双击 Shift 查询 AbstractWrapper。QueryWrapper 是 AbstractWrapper 的子类
+     * */
     @Test
-    public void selectListByWrapper(){
+    public void selectListByWrapper() {
         // 名字中包含 打工仔 且 年龄小于 40
         // name like "%打工仔%" and age < 40
         // SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name LIKE ? AND age < ?)
@@ -70,7 +70,7 @@ public class RetrieveTest {
 
 
     @Test
-    public void selectListByWrapper2(){
+    public void selectListByWrapper2() {
         // 名字中包含 打工仔 且 （年龄大于等于 20 且 小于等于 40）并且 email 不为空
         // name like "%打工仔%" and age between 20 and 40 and email is not null
         // SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name LIKE ? AND age BETWEEN ? AND ? AND email IS NOT NULL)
@@ -82,13 +82,34 @@ public class RetrieveTest {
     }
 
     @Test
-    public void selectListByWrapper3(){
+    public void selectListByWrapper3() {
         // 名字中为王姓 *或者* 年龄大于等于 40，按照年龄降序排列，年龄相同的按照 id 升序排列
 
         // SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name LIKE ? AND age >= ?) ORDER BY age DESC,id ASC
         // %王%%(String), 40(Integer)
         QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
         queryWrapper.likeRight("name", "王").or().ge("age", 40).orderByDesc("age").orderByAsc("id");
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+    /**
+     * 需求4
+     * 创建日期为 2022年7月8号 并且 直属上级的名字为 王姓
+     * <p>
+     * dateformat(create_time, '%Y-%m-%d') and manager_id in (select id from user where name like '王%')
+     * 条件构造器： apply https://baomidou.com/pages/10c804/#apply
+     *
+     *  SELECT id,name,age,email,manager_id,create_time FROM user
+     *  WHERE (date_format(create_time,'%Y-%m-%d') = ? AND
+     *  manager_id IN (select id from user where name like '王%'))
+     */
+    @Test
+    public void selectListByWrapper4() {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.apply("date_format(create_time,'%Y-%m-%d') = {0}", "2022-07-08").inSql("manager_id", "" +
+                "select id from user where name like '王%'");
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
