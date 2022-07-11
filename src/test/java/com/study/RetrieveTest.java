@@ -274,4 +274,26 @@ public class RetrieveTest {
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
     }
+
+    /**
+     * allEq https://baomidou.com/pages/10c804/#alleq
+     * 1. age 有值，SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name = ? AND age = ?)
+     * 2. age = null，SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name = ? AND age IS NULL)
+     *    我们可以通过设置第二个参数为 false，将 为 null 的值不添加到查询语句中
+     * */
+    @Test
+    public void selectByWrapperAllEq(){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        Map<String, Object> params = new HashMap<>();
+        params.put("name", "王总");
+        params.put("age", null);
+        // TODO 1. 将条件加入到 queryWrapper 中
+        // queryWrapper.allEq(params, false);
+
+        // TODO 2. 对查询参数继续过滤
+        // allEq(BiPredicate<R, V> filter, Map<R, V> params)
+        queryWrapper.allEq((k, v) -> !k.equals("name"), params);
+        List<User> userList = userMapper.selectList(queryWrapper);
+        userList.forEach(System.out::println);
+    }
 }
