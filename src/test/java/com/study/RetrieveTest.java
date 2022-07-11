@@ -261,9 +261,9 @@ public class RetrieveTest {
     /**
      * 实体作为条件构造器构造方法的参数
      * SELECT id,name,age,email,manager_id,create_time FROM user WHERE name=? AND age=?
-     * */
+     */
     @Test
-    public void selectByWrapperEntity(){
+    public void selectByWrapperEntity() {
         User whereUser = new User();
         whereUser.setName("王总");
         whereUser.setAge(40);
@@ -279,10 +279,10 @@ public class RetrieveTest {
      * allEq https://baomidou.com/pages/10c804/#alleq
      * 1. age 有值，SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name = ? AND age = ?)
      * 2. age = null，SELECT id,name,age,email,manager_id,create_time FROM user WHERE (name = ? AND age IS NULL)
-     *    我们可以通过设置第二个参数为 false，将 为 null 的值不添加到查询语句中
-     * */
+     * 我们可以通过设置第二个参数为 false，将 为 null 的值不添加到查询语句中
+     */
     @Test
-    public void selectByWrapperAllEq(){
+    public void selectByWrapperAllEq() {
         QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
         Map<String, Object> params = new HashMap<>();
         params.put("name", "王总");
@@ -295,5 +295,74 @@ public class RetrieveTest {
         queryWrapper.allEq((k, v) -> !k.equals("name"), params);
         List<User> userList = userMapper.selectList(queryWrapper);
         userList.forEach(System.out::println);
+    }
+
+    // SELECT id,name FROM user WHERE (name LIKE ? AND age < ?)
+    // 返回的数据是 {name: 打工仔, id: 1}
+    @Test
+    public void selectByWrapperMaps() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        // * 这样会返回所有列为 key 的对象
+        queryWrapper.like("name", "打工仔").lt("age", 28);
+        //* 只会返回 select 选中的 key
+        // queryWrapper.select("id", "name").like("name", "打工仔").lt("age", 28);
+        List<Map<String, Object>> userList = userMapper.selectMaps(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+    /**
+     * 需求：
+     * 按照直属上级分组，查询每组的平均年龄、最大年龄、最小年龄。
+     * 并且只取年龄总和小于500的组
+     * select avg(age) avg_age, min(age) min_age,max(age) max_age from user
+     * group by manager_id
+     * having sum(aga) < 500
+     * <p>
+     * SELECT avg(age) avg_age,min(age) min_age,max(age) max_age FROM user GROUP BY manager_id HAVING sum(age)<?
+     */
+    @Test
+    public void selectByWrapperMaps2() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.select("avg(age) avg_age", "min(age) min_age", "max(age) max_age")
+                .groupBy("manager_id")
+                .having("sum(age)<{0}", 500);
+        List<Map<String, Object>> userList = userMapper.selectMaps(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+    /**
+     * selectObjs 只返回第一个字段的值。相当于不管 select 多少列，只会返回第一列
+     */
+
+    @Test
+    public void selectByWrapperObjs() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.select("avg(age) avg_age", "min(age) min_age", "max(age) max_age")
+                .groupBy("manager_id")
+                .having("sum(age)<{0}", 500);
+        List<Object> userList = userMapper.selectObjs(queryWrapper);
+        userList.forEach(System.out::println);
+    }
+
+    /**
+     * selectCount 查询总记录树
+     */
+    @Test
+    public void selectByWrapperCount() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.like("name", "打工仔").lt("age", 28);
+        Integer count = userMapper.selectCount(queryWrapper);
+        System.out.println("count:" + count);
+    }
+    /**
+     * selectOne 只返回第一条数据。
+     * 多于 1 条会报错。可以没有
+     */
+    @Test
+    public void selectByWrapperOne() {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.like("name", "王总").lt("age", 50);
+        User user = userMapper.selectOne(queryWrapper);
+        System.out.println(user.toString());
     }
 }
